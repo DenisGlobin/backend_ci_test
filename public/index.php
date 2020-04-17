@@ -64,7 +64,7 @@ if(isset($_SERVER['CI_DOMAIN']))
 
     $domain = implode('.',$domain);
 }
-define('DOMAIN', !empty($domain) ? $domain: 'example.com');
+define('DOMAIN', !empty($domain) ? $domain: 'futureisrise.local');
 
 /*
  *---------------------------------------------------------------
@@ -128,7 +128,7 @@ $system_path = '../system';
  *
  * NO TRAILING SLASH!
  */
-$application_folder = '/var/www/test_task/application';
+$application_folder = '/home/vagrant/code/backend_ci_test/application';
 
 /*
  *---------------------------------------------------------------

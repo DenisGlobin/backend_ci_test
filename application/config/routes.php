@@ -52,6 +52,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 
 $route['default_controller'] = 'main_page';
+$route['login']['post'] = 'main_page/login';
 $route['404_override'] = 'api/error_404';
 $route['404'] = 'api/error_404';
 $route['error'] = 'api/error';

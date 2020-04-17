@@ -17,8 +17,9 @@ class Main_page extends MY_Controller
         App::get_ci()->load->model('Login_model');
         App::get_ci()->load->model('Post_model');
 
-        if (is_prod())
-        {
+        App::get_ci()->load->library('form_validation');
+
+        if (is_prod()) {
             die('In production it will be hard to debug! Run as development environment!');
         }
     }
@@ -26,8 +27,6 @@ class Main_page extends MY_Controller
     public function index()
     {
         $user = User_model::get_user();
-
-
 
         App::get_ci()->load->view('main_page', ['user' => User_model::preparation($user, 'default')]);
     }
@@ -38,18 +37,17 @@ class Main_page extends MY_Controller
         return $this->response_success(['posts' => $posts]);
     }
 
-    public function get_post($post_id){ // or can be $this->input->post('news_id') , but better for GET REQUEST USE THIS
+    public function get_post($post_id)
+    { // or can be $this->input->post('news_id') , but better for GET REQUEST USE THIS
 
         $post_id = intval($post_id);
-
-        if (empty($post_id)){
+        if (empty($post_id)) {
             return $this->response_error(CI_Core::RESPONSE_GENERIC_WRONG_PARAMS);
         }
 
-        try
-        {
+        try {
             $post = new Post_model($post_id);
-        } catch (EmeraldModelNoDataException $ex){
+        } catch (EmeraldModelNoDataException $ex) {
             return $this->response_error(CI_Core::RESPONSE_GENERIC_NO_DATA);
         }
 
@@ -59,69 +57,99 @@ class Main_page extends MY_Controller
     }
 
 
-    public function comment($post_id,$message){ // or can be App::get_ci()->input->post('news_id') , but better for GET REQUEST USE THIS ( tests )
+    public function comment($post_id, $message)
+    { // or can be App::get_ci()->input->post('news_id') , but better for GET REQUEST USE THIS ( tests )
 
-        if (!User_model::is_logged()){
+        if (!User_model::is_logged()) {
             return $this->response_error(CI_Core::RESPONSE_GENERIC_NEED_AUTH);
         }
 
         $post_id = intval($post_id);
-
-        if (empty($post_id) || empty($message)){
+        if (empty($post_id) || empty($message)) {
             return $this->response_error(CI_Core::RESPONSE_GENERIC_WRONG_PARAMS);
         }
 
-        try
-        {
+        try {
             $post = new Post_model($post_id);
-        } catch (EmeraldModelNoDataException $ex){
+        } catch (EmeraldModelNoDataException $ex) {
             return $this->response_error(CI_Core::RESPONSE_GENERIC_NO_DATA);
         }
 
-
-        $posts =  Post_model::preparation($post, 'full_info');
+        $posts = Post_model::preparation($post, 'full_info');
         return $this->response_success(['post' => $posts]);
     }
 
-
-    public function login($user_id)
+    /**
+     * Handle a login request to the application.
+     *
+     * @return object|string|void
+     */
+    public function login()
     {
-        // Right now for tests:
-        $post_id = intval($user_id);
+        $email = App::get_ci()->input->post('login', false);
+        $password = App::get_ci()->input->post('password', false);
 
-        if (empty($post_id)){
-            return $this->response_error(CI_Core::RESPONSE_GENERIC_WRONG_PARAMS);
+        $rules = array(
+            array(
+                'field' => 'login',
+                'label' => 'Email',
+                'rules' => 'required|valid_email'
+            ),
+            array(
+                'field' => 'password',
+                'label' => 'Password',
+                'rules' => 'required|alpha_dash'
+            )
+        );
+        App::get_ci()->form_validation->set_rules($rules);
+
+        if (App::get_ci()->form_validation->run() == TRUE) {
+            try {
+                // If the validation was successful, we try to find the user in the database.
+                $user = User_model::find_user($email);
+            } catch (EmeraldModelLoadException $exception) {
+                return $this->response_error($exception->getMessage());
+            }
+            // Checking password
+            if (isset($user) && ($user->get_password() === $password)) {
+                try {
+                    Login_model::start_session($user->get_id());
+                } catch (Exception $exception) {
+                    return $this->response_error($exception->getMessage());
+                }
+            } else {
+                return $this->response_error('These credentials do not match our records');
+            }
+
+        } else {
+            return $this->response_error(validation_errors());
         }
-
-        // But data from modal window sent by POST request.  App::get_ci()->input...  to get it.
-
-
-        //Todo: Authorisation
-
-        Login_model::start_session($user_id);
-
-        return $this->response_success(['user' => $user_id]);
+        // If the data entered is correct.
+        return $this->response_success(['user' => $user], 200);
     }
 
 
     public function logout()
     {
         Login_model::logout();
-        redirect(site_url('/'));
+        redirect(base_url('/'));
     }
 
-    public function add_money(){
+    public function add_money()
+    {
         // todo: add money to user logic
         return $this->response_success(['amount' => rand(1,55)]);
     }
 
-    public function buy_boosterpack(){
+    public function buy_boosterpack()
+    {
         // todo: add money to user logic
         return $this->response_success(['amount' => rand(1,55)]);
     }
 
 
-    public function like(){
+    public function like()
+    {
         // todo: add like post\comment logic
         return $this->response_success(['likes' => rand(1,55)]); // Колво лайков под постом \ комментарием чтобы обновить
     }

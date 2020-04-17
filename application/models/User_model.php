@@ -37,6 +37,20 @@ class User_model extends CI_Emerald_Model {
     private static $_current_user;
 
     /**
+     * User_model constructor.
+     *
+     * @param null $id
+     * @throws Exception
+     */
+    function __construct($id = NULL)
+    {
+        parent::__construct();
+        $this->set_id($id);
+    }
+
+    /**
+     * Get email of the current user.
+     *
      * @return string
      */
     public function get_email(): string
@@ -45,8 +59,9 @@ class User_model extends CI_Emerald_Model {
     }
 
     /**
-     * @param string $email
+     * Set email for current user.
      *
+     * @param string $email
      * @return bool
      */
     public function set_email(string $email)
@@ -56,6 +71,8 @@ class User_model extends CI_Emerald_Model {
     }
 
     /**
+     * Get password of the current user.
+     *
      * @return string|null
      */
     public function get_password(): ?string
@@ -64,8 +81,9 @@ class User_model extends CI_Emerald_Model {
     }
 
     /**
-     * @param string $password
+     * Set password for current user.
      *
+     * @param string $password
      * @return bool
      */
     public function set_password(string $password)
@@ -75,6 +93,8 @@ class User_model extends CI_Emerald_Model {
     }
 
     /**
+     * Get name of the current user.
+     *
      * @return string
      */
     public function get_personaname(): string
@@ -83,8 +103,9 @@ class User_model extends CI_Emerald_Model {
     }
 
     /**
-     * @param string $personaname
+     * Set name for current user.
      *
+     * @param string $personaname
      * @return bool
      */
     public function set_personaname(string $personaname)
@@ -103,7 +124,6 @@ class User_model extends CI_Emerald_Model {
 
     /**
      * @param string $avatarfull
-     *
      * @return bool
      */
     public function set_avatarfull(string $avatarfull)
@@ -122,7 +142,6 @@ class User_model extends CI_Emerald_Model {
 
     /**
      * @param int $rights
-     *
      * @return bool
      */
     public function set_rights(int $rights)
@@ -141,7 +160,6 @@ class User_model extends CI_Emerald_Model {
 
     /**
      * @param float $wallet_balance
-     *
      * @return bool
      */
     public function set_wallet_balance(float $wallet_balance)
@@ -160,7 +178,6 @@ class User_model extends CI_Emerald_Model {
 
     /**
      * @param float $wallet_total_refilled
-     *
      * @return bool
      */
     public function set_wallet_total_refilled(float $wallet_total_refilled)
@@ -179,7 +196,6 @@ class User_model extends CI_Emerald_Model {
 
     /**
      * @param float $wallet_total_withdrawn
-     *
      * @return bool
      */
     public function set_wallet_total_withdrawn(float $wallet_total_withdrawn)
@@ -198,7 +214,6 @@ class User_model extends CI_Emerald_Model {
 
     /**
      * @param string $time_created
-     *
      * @return bool
      */
     public function set_time_created(string $time_created)
@@ -217,7 +232,6 @@ class User_model extends CI_Emerald_Model {
 
     /**
      * @param string $time_updated
-     *
      * @return bool
      */
     public function set_time_updated(string $time_updated)
@@ -226,13 +240,11 @@ class User_model extends CI_Emerald_Model {
         return $this->save('time_updated', $time_updated);
     }
 
-
-    function __construct($id = NULL)
-    {
-        parent::__construct();
-        $this->set_id($id);
-    }
-
+    /**
+     * @param bool $for_update
+     * @return $this|CI_Emerald_Model
+     * @throws Exception
+     */
     public function reload(bool $for_update = FALSE)
     {
         parent::reload($for_update);
@@ -240,12 +252,25 @@ class User_model extends CI_Emerald_Model {
         return $this;
     }
 
+    /**
+     * Create a new user.
+     *
+     * @param array $data
+     * @return User_model
+     * @throws Exception
+     */
     public static function create(array $data)
     {
         App::get_ci()->s->from(self::CLASS_TABLE)->insert($data)->execute();
         return new static(App::get_ci()->s->get_insert_id());
     }
 
+    /**
+     * Delete user form DB.
+     *
+     * @return bool
+     * @throws Exception
+     */
     public function delete()
     {
         $this->is_loaded(TRUE);
@@ -254,6 +279,8 @@ class User_model extends CI_Emerald_Model {
     }
 
     /**
+     * Get all users.
+     *
      * @return self[]
      * @throws Exception
      */
@@ -345,6 +372,8 @@ class User_model extends CI_Emerald_Model {
     }
 
     /**
+     * Is user logged?
+     *
      * @return bool
      */
     public static function is_logged()
@@ -357,23 +386,41 @@ class User_model extends CI_Emerald_Model {
 
     /**
      * Returns current user or empty model
+     *
      * @return User_model
      */
     public static function get_user()
     {
-        if (! is_null(self::$_current_user)) {
+        if (!is_null(self::$_current_user)) {
             return self::$_current_user;
         }
-        if ( ! is_null(self::get_session_id()))
-        {
+        if (!is_null(self::get_session_id())) {
             self::$_current_user = new self(self::get_session_id());
             return self::$_current_user;
-        } else
-        {
+        } else {
             return new self();
         }
     }
 
-
+    /**
+     * Find user by email.
+     *
+     * @param string $email
+     * @return null|User_model
+     * @throws Exception
+     */
+    public static function find_user(string $email): ?User_model
+    {
+        // Try to found user by email
+        $user = App::get_ci()->s->from(self::CLASS_TABLE)->where(['email' => $email])->one();
+        // If user was found, set his as current user
+        if (!is_null($user)) {
+            self::$_current_user = (new self())->set($user);
+            return self::$_current_user;
+        } else {
+            throw new EmeraldModelLoadException('User not found!');
+        }
+        return NULL;
+    }
 
 }

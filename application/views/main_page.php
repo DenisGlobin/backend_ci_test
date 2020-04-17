@@ -21,41 +21,24 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
         <li class="nav-item">
-            <?  if (User_model::is_logged()) {?>
+            <?php  if (User_model::is_logged()) {?>
               <a href="/main_page/logout" class="btn btn-primary my-2 my-sm-0"
                  data-target="#loginModal">Log out, <?= $user->personaname?>
               </a>
-            <? } else {?>
+            <?php } else {?>
               <button type="button" class="btn btn-success my-2 my-sm-0" type="submit" data-toggle="modal"
                       data-target="#loginModal">Log IN
               </button>
-            <? } ?>
+            <?php } ?>
         </li>
         <li class="nav-item">
-            <?  if (User_model::is_logged()) {?>
+            <?php  if (User_model::is_logged()) {?>
               <button type="button" class="btn btn-success my-2 my-sm-0" type="submit" data-toggle="modal"
                       data-target="#addModal">Add balance
               </button>
-            <? }?>
+            <?php }?>
         </li>
       </div>
-<!--      <div class="collapse navbar-collapse" id="navbarTogglerDemo01">-->
-<!--        <li class="nav-item">-->
-<!--            --><?// if (User_model::is_logged()) {?>
-<!--              <button type="button" class="btn btn-primary my-2 my-sm-0" type="submit" data-toggle="modal"-->
-<!--                      data-target="#loginModal">Log in-->
-<!--              </button>-->
-<!--            --><?// } else {?>
-<!--              <button type="button" class="btn btn-danger my-2 my-sm-0" href="/logout">Log out-->
-<!--              </button>-->
-<!--            --><?// } ?>
-<!--        </li>-->
-<!--        <li class="nav-item">-->
-<!--          <button type="button" class="btn btn-success my-2 my-sm-0" type="submit" data-toggle="modal"-->
-<!--                  data-target="#addModal">Add balance-->
-<!--          </button>-->
-<!--        </li>-->
-<!--      </div>-->
     </nav>
   </div>
   <div class="main">
@@ -118,18 +101,17 @@
         <div class="modal-body">
           <form>
             <div class="form-group">
-              <label for="exampleInputEmail1">Please enter login</label>
+              <label for="inputEmail">Please enter Email</label>
               <input type="email" class="form-control" id="inputEmail" aria-describedby="emailHelp" v-model="login" required>
               <div class="invalid-feedback" v-if="invalidLogin">
-                Please write a username.
+<!--                {{ errorMessage }}-->
+<!--                  --><?php //echo validation_errors('<div class="error">', '</div>'); ?>
               </div>
             </div>
             <div class="form-group">
-              <label for="exampleInputPassword1">Please enter password</label>
+              <label for="inputPassword">Please enter password</label>
               <input type="password" class="form-control" id="inputPassword" v-model="pass" required>
-              <div class="invalid-feedback" v-show="invalidPass">
-                Please write a password.
-              </div>
+              <div class="invalid-feedback" v-show="invalidPass" v-html="errorMessage"></div>
             </div>
           </form>
         </div>

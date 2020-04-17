@@ -7,6 +7,7 @@ var app = new Vue({
 		invalidLogin: false,
 		invalidPass: false,
 		invalidSum: false,
+		errorMessage: '',
 		posts: [],
 		addSum: 0,
 		amount: 0,
@@ -34,7 +35,7 @@ var app = new Vue({
 		}
 	},
 	created(){
-		var self = this
+		let self = this;
 		axios
 			.get('/main_page/get_all_posts')
 			.then(function (response) {
@@ -46,35 +47,35 @@ var app = new Vue({
 			console.log ('logout');
 		},
 		logIn: function () {
-			var self= this;
-			if(self.login === ''){
-				self.invalidLogin = true
-			}
-			else if(self.pass === ''){
-				self.invalidLogin = false
-				self.invalidPass = true
-			}
-			else{
-				self.invalidLogin = false
-				self.invalidPass = false
-				axios.post('/main_page/login', {
-					login: self.login,
-					password: self.pass
+			let self = this;
+            let formData = new FormData();
+
+			self.invalidLogin = false;
+			self.invalidPass = false;
+
+			formData.append("login",self.login);
+			formData.append("password",self.pass);
+
+			axios.post('/main_page/login', formData)
+				.then(function (response) {
+
+					if (response.data.error_message) {
+						self.invalidLogin = true;
+						self.errorMessage = response.data.error_message;
+						console.log(response.data.error_message);
+						self.invalidPass = true;
+					} else {
+						location.reload();
+					}
 				})
-					.then(function (response) {
-						setTimeout(function () {
-							$('#loginModal').modal('hide');
-						}, 500);
-					})
-			}
 		},
 		fiilIn: function () {
-			var self= this;
-			if(self.addSum === 0){
+			let self = this;
+			if(self.addSum === 0) {
 				self.invalidSum = true
 			}
-			else{
-				self.invalidSum = false
+			else {
+				self.invalidSum = false;
 				axios.post('/main_page/add_money', {
 					sum: self.addSum,
 				})
@@ -86,7 +87,7 @@ var app = new Vue({
 			}
 		},
 		openPost: function (id) {
-			var self= this;
+			let self = this;
 			axios
 				.get('/main_page/get_post/' + id)
 				.then(function (response) {
@@ -99,7 +100,7 @@ var app = new Vue({
 				})
 		},
 		addLike: function (id) {
-			var self= this;
+			let self = this;
 			axios
 				.get('/main_page/like')
 				.then(function (response) {
@@ -108,12 +109,12 @@ var app = new Vue({
 
 		},
 		buyPack: function (id) {
-			var self= this;
+			let self = this;
 			axios.post('/main_page/buy_boosterpack', {
 				id: id,
 			})
 				.then(function (response) {
-					self.amount = response.data.amount
+					self.amount = response.data.amount;
 					if(self.amount !== 0){
 						setTimeout(function () {
 							$('#amountModal').modal('show');
