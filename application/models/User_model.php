@@ -364,6 +364,7 @@ class User_model extends CI_Emerald_Model {
 
     /**
      * Getting id from session
+     *
      * @return integer|null
      */
     public static function get_session_id(): ?int
@@ -413,14 +414,20 @@ class User_model extends CI_Emerald_Model {
     {
         // Try to found user by email
         $user = App::get_ci()->s->from(self::CLASS_TABLE)->where(['email' => $email])->one();
-        // If user was found, set his as current user
+        // If user was found
         if (!is_null($user)) {
-            self::$_current_user = (new self())->set($user);
-            return self::$_current_user;
+//            self::$_current_user = (new self())->set($user);
+//            return self::$_current_user;
+            return (new self())->set($user);
         } else {
             throw new EmeraldModelLoadException('User not found!');
         }
         return NULL;
     }
+
+//    public static function set_current_user(User_model $user)
+//    {
+//        self::$_current_user = $user;
+//    }
 
 }

@@ -13,6 +13,7 @@ var app = new Vue({
 		amount: 0,
 		likes: 0,
 		commentText: '',
+		assignCommentID: null,
 		packs: [
 			{
 				id: 1,
@@ -30,7 +31,7 @@ var app = new Vue({
 	},
 	computed: {
 		test: function () {
-			var data = [];
+			let data = [];
 			return data;
 		}
 	},
@@ -92,12 +93,74 @@ var app = new Vue({
 				.get('/main_page/get_post/' + id)
 				.then(function (response) {
 					self.post = response.data.post;
+					self.setPadding();
 					if(self.post){
 						setTimeout(function () {
 							$('#postModal').modal('show');
 						}, 500);
 					}
 				})
+		},
+        getPadding: function (comment) {
+            return comment.paddingL;
+        },
+		setPadding: function () {
+            let self = this;
+			if (self.post.comments.length > 0)	{
+                self.post.comments.forEach(function (comment) {
+                    if (comment.assign_comment_id !== null) {
+                        let padding = self.getParentTab(comment.assign_comment_id);
+                        comment.paddingL = padding + 24;
+					} else {
+                        comment.paddingL = 0;
+                    }
+                });
+			}
+		},
+		getParentTab: function (id) {
+            let self = this;
+            let tabulation = 0;
+            // Search parent comment.
+            self.post.comments.forEach(function (comment) {
+				if (comment.id === id) {
+					if (typeof(comment.paddingL) !== 'undefined') {
+                        // console.log("Parent id: "+ comment.id + " Parent tab: " + comment.paddingL + " Type: " + typeof comment.paddingL);
+                        // Get parent padding
+						tabulation = Number(comment.paddingL);
+                    }
+				}
+            });
+            return tabulation;
+		},
+        setAssignComment: function (id) {
+            // Show button for cancel edition
+            $("form#addCommentForm").before("" +
+                "<div class='alert alert-warning alert-dismissible fade show' role='alert' id='cancelEdt'>\n" +
+                "        <strong>Написать ответ</strong>\n" +
+                "        <button type='button' class='close' data-dismiss='alert' aria-label='Close' onclick='responseCancel()'>\n" +
+                "            <span aria-hidden='true'>&times;</span>\n" +
+                "        </button>\n" +
+                "</div>");
+			this.assignCommentID = id;
+		},
+        responseCancel: function () {
+			this.assignCommentID = null;
+		},
+		addComment: function (postID) {
+            let self = this;
+            let formData = new FormData();
+
+            formData.append("postID", postID);
+            formData.append("message", self.commentText);
+            formData.append("assignComment", self.assignCommentID);
+
+            axios.post('/main_page/store_comment', formData)
+                .then(function (response) {
+                    self.post = response.data.post;
+                    self.commentText = '';
+                    self.assignCommentID = null;
+                    self.setPadding();
+                });
 		},
 		addLike: function (id) {
 			let self = this;

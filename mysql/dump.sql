@@ -55,6 +55,7 @@ CREATE TABLE `comment` (
   `id` int(11) NOT NULL,
   `user_id` int(10) UNSIGNED NOT NULL,
   `assign_id` int(10) UNSIGNED NOT NULL,
+  `assign_comment_id` int(10) UNSIGNED DEFAULT NULL,
   `text` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `time_created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `time_updated` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -64,10 +65,10 @@ CREATE TABLE `comment` (
 -- Dumping data for table `comment`
 --
 
-INSERT INTO `comment` (`id`, `user_id`, `assign_id`, `text`, `time_created`) VALUES
-(1, 1, 1, 'Ну чо ассигн проверим', '2020-03-27 21:39:44'),
-(2, 1, 1, 'Второй коммент', '2020-03-27 21:39:55'),
-(3, 2, 1, 'Второй коммент от второго человека', '2020-03-27 21:40:22');
+INSERT INTO `comment` (`id`, `user_id`, `assign_id`, `assign_comment_id`, `text`, `time_created`) VALUES
+(1, 1, 1, NULL, 'Ну чо ассигн проверим', '2020-03-27 21:39:44'),
+(2, 1, 1, NULL, 'Второй коммент', '2020-03-27 21:39:55'),
+(3, 2, 1, 2, 'Второй коммент от второго человека', '2020-03-27 21:40:22');
 
 -- --------------------------------------------------------
 
@@ -117,8 +118,8 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`id`, `email`, `password`, `personaname`, `avatarfull`, `rights`, `wallet_balance`, `wallet_total_refilled`, `wallet_total_withdrawn`, `time_created`) VALUES
-(1, 'admin@niceadminmail.pl', NULL, 'AdminProGod', 'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/96/967871835afdb29f131325125d4395d55386c07a_full.jpg', 0, '0.00', '0.00', '0.00', '2019-07-26 01:53:54'),
-(2, 'simpleuser@niceadminmail.pl', NULL, 'simpleuser', 'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/86/86a0c845038332896455a566a1f805660a13609b_full.jpg', 0, '0.00', '0.00', '0.00', '2019-07-26 01:53:54');
+(1, 'admin@niceadminmail.pl', 'password', 'AdminProGod', 'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/96/967871835afdb29f131325125d4395d55386c07a_full.jpg', 0, '0.00', '0.00', '0.00', '2019-07-26 01:53:54'),
+(2, 'simpleuser@niceadminmail.pl', 'password', 'simpleuser', 'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/86/86a0c845038332896455a566a1f805660a13609b_full.jpg', 0, '0.00', '0.00', '0.00', '2019-07-26 01:53:54');
 
 --
 -- Indexes for dumped tables

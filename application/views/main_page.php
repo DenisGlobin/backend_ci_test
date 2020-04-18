@@ -139,7 +139,7 @@
             <div class="name">{{post.user.personaname}}</div>
           </div>
           <div class="card mb-3">
-            <div class="post-img" v-bind:style="{ backgroundImage: 'url(' + post.img + ')' }"></div>
+            <div class="post-img" :style="{ backgroundImage: 'url(' + post.img + ')' }"></div>
             <div class="card-body">
               <div class="likes" @click="addLike(post.id)">
                 <div class="heart-wrap" v-if="!likes">
@@ -159,13 +159,20 @@
                   <span>{{likes}}</span>
                 </div>
               </div>
-              <p class="card-text" v-for="comment in post.coments"> {{comment.user.personaname + ' - '}}<small class="text-muted">{{comment.text}}</small></p>
-              <form class="form-inline">
-                <div class="form-group">
-                  <input type="text" class="form-control" id="addComment" v-model="commentText">
-                </div>
-                <button type="submit" class="btn btn-primary">Add comment</button>
-              </form>
+              <p class="card-text" v-for="comment in post.comments" :style="{ marginLeft: getPadding(comment) + 'px'}">
+                  <small class="text-muted">{{comment.time_created + ' / '}}</small>
+                  <strong>{{comment.user.personaname + ' - '}}</strong>
+                  <a href="#" @click="setAssignComment(comment.id)" class="btn-light">Ответить</a><br>
+                  {{comment.text}}
+              </p>
+              <?php  if (User_model::is_logged()) {?>
+                  <form id="addCommentForm" class="form-inline">
+                    <div class="form-group">
+                      <input type="text" class="form-control" id="addComment" v-model="commentText">
+                    </div>
+                    <button type="submit" class="btn btn-primary" @click.prevent="addComment(post.id)">Add comment</button>
+                  </form>
+              <?php } ?>
             </div>
           </div>
         </div>

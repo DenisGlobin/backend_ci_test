@@ -56,9 +56,19 @@ class Main_page extends MY_Controller
         return $this->response_success(['post' => $posts]);
     }
 
-
-    public function comment($post_id, $message)
+    /**
+     * Store a comment to the DB.
+     *
+     * @return mixed
+     * @throws Exception
+     */
+    public function store_comment()
     { // or can be App::get_ci()->input->post('news_id') , but better for GET REQUEST USE THIS ( tests )
+
+        $post_id = App::get_ci()->input->post('postID', TRUE);
+        $message = App::get_ci()->input->post('message', TRUE);
+        $assignComment = App::get_ci()->input->post('assignComment', TRUE);
+        $assignComment = ($assignComment == "null") ? NULL : $assignComment;
 
         if (!User_model::is_logged()) {
             return $this->response_error(CI_Core::RESPONSE_GENERIC_NEED_AUTH);
@@ -75,6 +85,21 @@ class Main_page extends MY_Controller
             return $this->response_error(CI_Core::RESPONSE_GENERIC_NO_DATA);
         }
 
+        $user = User_model::get_user();
+        $data = array(
+            'user_id' => $user->get_id(),
+            'assign_id' => $post_id,
+            'assign_comment_id' => $assignComment,
+            'text' => $message,
+            'time_created' => date('Y-m-d h:i:s')
+        );
+
+        try {
+            $comment = Comment_model::create($data);
+        } catch (Exception $exception) {
+            return $this->response_error($exception->getMessage());
+        }
+
         $posts = Post_model::preparation($post, 'full_info');
         return $this->response_success(['post' => $posts]);
     }
@@ -86,8 +111,8 @@ class Main_page extends MY_Controller
      */
     public function login()
     {
-        $email = App::get_ci()->input->post('login', false);
-        $password = App::get_ci()->input->post('password', false);
+        $email = App::get_ci()->input->post('login', TRUE);
+        $password = App::get_ci()->input->post('password', TRUE);
 
         $rules = array(
             array(
@@ -128,7 +153,10 @@ class Main_page extends MY_Controller
         return $this->response_success(['user' => $user], 200);
     }
 
-
+    /**
+     * Logout the user.
+     *
+     */
     public function logout()
     {
         Login_model::logout();

@@ -15,6 +15,8 @@ class Comment_model extends CI_Emerald_Model
     protected $user_id;
     /** @var int */
     protected $assing_id;
+    /** @var int */
+    protected $assing_comment_id;
     /** @var string */
     protected $text;
 
@@ -225,7 +227,6 @@ class Comment_model extends CI_Emerald_Model
         }
     }
 
-
     /**
      * @param self[] $data
      * @return stdClass[]
@@ -234,25 +235,47 @@ class Comment_model extends CI_Emerald_Model
     {
         $ret = [];
 
-        foreach ($data as $d){
+        foreach ($data as $d) {
             $o = new stdClass();
 
-            $o->id = $d->get_id();
+            $o->id = intval($d->get_id());
+            $o->assign_comment_id = ($d->get_assign_comment_id($o->id) != NULL) ? intval($d->get_assign_comment_id($o->id)) : NULL;
             $o->text = $d->get_text();
-
             $o->user = User_model::preparation($d->get_user(),'main_page');
-
             $o->likes = rand(0, 25);
-
             $o->time_created = $d->get_time_created();
             $o->time_updated = $d->get_time_updated();
 
             $ret[] = $o;
         }
 
+        // Отсортировать массив ret, так чтобы коментрарии, ассоциированные с другими комментариями, располагались сразу за родительским комментом
+        for ($i = 0; $i < count($ret); $i++) {
+            if ($ret[$i]->assign_comment_id != NULL) {
+                $new_index = $ret[$i]->assign_comment_id;
+                $tmp = $ret[$i];
+                unset($ret[$i]);
+                array_splice($ret, $new_index,0, array($tmp));
+            }
+        }
 
         return $ret;
     }
 
+    /**
+     * Get id of the associated parent comment.
+     *
+     * @param int $comment_id
+     * @return mixed
+     */
+    public function get_assign_comment_id(int $comment_id)
+    {
+        $comment = App::get_ci()->s
+            ->select('assing_comment_id')
+            ->from(self::CLASS_TABLE)
+            ->where(['id' => $comment_id])
+            ->one();
 
+        return $comment['assign_comment_id'];
+    }
 }
