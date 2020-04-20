@@ -241,8 +241,9 @@ class Main_page extends MY_Controller
     }
 
     /**
-     * likes purchase.
+     * Likes purchase.
      *
+     * @return mixed
      */
     public function buy_likes()
     {
@@ -289,11 +290,46 @@ class Main_page extends MY_Controller
         return $this->response_success(['amount' => rand(1,55)]);
     }
 
-
+    /**
+     * Like post or comment.
+     *
+     * @return mixed
+     */
     public function like()
     {
-        // todo: add like post\comment logic
-        return $this->response_success(['likes' => rand(1,55)]); // Колво лайков под постом \ комментарием чтобы обновить
+        if (!User_model::is_logged()) {
+            return $this->response_error(CI_Core::RESPONSE_GENERIC_NEED_AUTH);
+        }
+        $user = User_model::get_user();
+
+        $id = intval(App::get_ci()->input->post('id', TRUE));
+        $objectType = App::get_ci()->input->post('objType', TRUE);
+
+        if ($objectType != 'post' && $objectType != 'comment') {
+            return $this->response_error(CI_Core::RESPONSE_GENERIC_WRONG_PARAMS);
+        }
+
+        try {
+            $post = new Post_model($id);
+        } catch (EmeraldModelNoDataException $ex) {
+            return $this->response_error(CI_Core::RESPONSE_GENERIC_NO_DATA);
+        }
+
+        if ($objectType == 'post'){
+            $likes = $post->get_likes();
+            $likesBalance = intval($user->get_likes_balance());
+            // Check if the user has likes on the account
+            if ($likesBalance > 0) {
+                $likes++;
+                $likesBalance--;
+
+                $user->set_likes_balance($likesBalance);
+                $post->set_likes($likes);
+            }
+
+            return $this->response_success(['likes' => $likes]); // Колво лайков под постом \ комментарием чтобы обновить
+        }
+
     }
 
 }

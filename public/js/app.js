@@ -171,10 +171,15 @@ var app = new Vue({
                     self.setPadding();
                 });
 		},
-		addLike: function (id) {
+		addLike: function (objType, id) {
 			let self = this;
+            let formData = new FormData();
+
+            formData.append("id", id);
+            formData.append("objType", objType);
+
 			axios
-				.get('/main_page/like')
+				.post('/main_page/like', formData)
 				.then(function (response) {
 					self.likes = response.data.likes;
 				})

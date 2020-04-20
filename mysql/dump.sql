@@ -57,6 +57,7 @@ CREATE TABLE `comment` (
   `assign_id` int(10) UNSIGNED NOT NULL,
   `assign_comment_id` int(10) UNSIGNED DEFAULT NULL,
   `text` text NOT NULL,
+  `likes` int(11) NOT NULL DEFAULT '0',
   `time_created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `time_updated` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -65,11 +66,11 @@ CREATE TABLE `comment` (
 -- Дамп данных таблицы `comment`
 --
 
-INSERT INTO `comment` (`id`, `user_id`, `assign_id`, `assign_comment_id`, `text`, `time_created`, `time_updated`) VALUES
-(1, 1, 1, NULL, 'Ну чо ассигн проверим', '2020-03-27 21:39:44', '2020-04-19 09:59:31'),
-(2, 1, 1, NULL, 'Второй коммент', '2020-03-27 21:39:55', '2020-04-19 09:59:31'),
-(3, 2, 1, 2, 'Второй коммент от второго человека', '2020-03-27 21:40:22', '2020-04-19 09:59:31'),
-(4, 2, 1, 2, 'А где тогда первый? :)', '2020-04-20 12:19:05', '2020-04-20 12:19:05');
+INSERT INTO `comment` (`id`, `user_id`, `assign_id`, `assign_comment_id`, `text`, `likes`, `time_created`, `time_updated`) VALUES
+(1, 1, 1, NULL, 'Ну чо ассигн проверим', 0, '2020-03-27 21:39:44', '2020-04-19 09:59:31'),
+(2, 1, 1, NULL, 'Второй коммент', 0, '2020-03-27 21:39:55', '2020-04-19 09:59:31'),
+(3, 2, 1, 2, 'Второй коммент от второго человека', 0, '2020-03-27 21:40:22', '2020-04-19 09:59:31'),
+(4, 2, 1, 2, 'А где тогда первый? :)', 0, '2020-04-20 12:19:05', '2020-04-20 12:19:05');
 
 -- --------------------------------------------------------
 
@@ -82,6 +83,7 @@ CREATE TABLE `post` (
   `user_id` int(10) UNSIGNED NOT NULL,
   `text` text NOT NULL,
   `img` varchar(1024) DEFAULT NULL,
+  `likes` int(11) NOT NULL DEFAULT '0',
   `time_created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `time_updated` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -90,9 +92,9 @@ CREATE TABLE `post` (
 -- Дамп данных таблицы `post`
 --
 
-INSERT INTO `post` (`id`, `user_id`, `text`, `img`, `time_created`, `time_updated`) VALUES
-(1, 1, 'Тестовый постик 1', '/images/posts/1.png', '2018-08-30 13:31:14', '2020-04-19 09:59:31'),
-(2, 1, 'Печальный пост', '/images/posts/2.png', '2018-10-11 01:33:27', '2020-04-19 09:59:31');
+INSERT INTO `post` (`id`, `user_id`, `text`, `img`, `likes`, `time_created`, `time_updated`) VALUES
+(1, 1, 'Тестовый постик 1', '/images/posts/1.png', 0, '2018-08-30 13:31:14', '2020-04-19 09:59:31'),
+(2, 1, 'Печальный пост', '/images/posts/2.png', 0, '2018-10-11 01:33:27', '2020-04-19 09:59:31');
 
 -- --------------------------------------------------------
 
