@@ -139,6 +139,15 @@ class Comment_model extends CI_Emerald_Model
     }
 
     /**
+     * @param $amount
+     */
+    public function set_likes($amount)
+    {
+        $this->likes = $amount;
+        return $this->save('likes', $amount);
+    }
+
+    /**
      * @return mixed
      */
     public function get_comments()
@@ -242,7 +251,7 @@ class Comment_model extends CI_Emerald_Model
             $o->assign_comment_id = ($d->get_assign_comment_id($o->id) != NULL) ? intval($d->get_assign_comment_id($o->id)) : NULL;
             $o->text = $d->get_text();
             $o->user = User_model::preparation($d->get_user(),'main_page');
-            $o->likes = rand(0, 25);
+            $o->likes = $d->get_likes();
             $o->time_created = $d->get_time_created();
             $o->time_updated = $d->get_time_updated();
 

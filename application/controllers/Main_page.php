@@ -305,29 +305,45 @@ class Main_page extends MY_Controller
         $id = intval(App::get_ci()->input->post('id', TRUE));
         $objectType = App::get_ci()->input->post('objType', TRUE);
 
-        if ($objectType != 'post' && $objectType != 'comment') {
-            return $this->response_error(CI_Core::RESPONSE_GENERIC_WRONG_PARAMS);
+        switch ($objectType) {
+            case 'post':
+                try {
+                    $objectModel = new Post_model($id);
+                } catch (EmeraldModelNoDataException $ex) {
+                    return $this->response_error(CI_Core::RESPONSE_GENERIC_NO_DATA);
+                }
+                break;
+            case 'comment':
+                App::get_ci()->load->model('Comment_model');
+                try {
+                    $objectModel = new Comment_model($id);
+                } catch (EmeraldModelNoDataException $ex) {
+                    return $this->response_error(CI_Core::RESPONSE_GENERIC_NO_DATA);
+                }
+                break;
+            default:
+                return $this->response_error(CI_Core::RESPONSE_GENERIC_WRONG_PARAMS);
         }
 
-        try {
-            $post = new Post_model($id);
-        } catch (EmeraldModelNoDataException $ex) {
-            return $this->response_error(CI_Core::RESPONSE_GENERIC_NO_DATA);
+        $likes = $objectModel->get_likes();
+        $likesBalance = intval($user->get_likes_balance());
+        // Check if the user has likes on the account
+        if ($likesBalance > 0) {
+            $likes++;
+            $likesBalance--;
+
+            $user->set_likes_balance($likesBalance);
+            $objectModel->set_likes($likes);
+        } else {
+            return $this->response_error('Error! No likes on your account.');
         }
 
-        if ($objectType == 'post'){
-            $likes = $post->get_likes();
-            $likesBalance = intval($user->get_likes_balance());
-            // Check if the user has likes on the account
-            if ($likesBalance > 0) {
-                $likes++;
-                $likesBalance--;
+        if ($objectType == 'post') {
+            return $this->response_success(['post_likes' => $likes]);
+        }
 
-                $user->set_likes_balance($likesBalance);
-                $post->set_likes($likes);
-            }
-
-            return $this->response_success(['likes' => $likes]); // Колво лайков под постом \ комментарием чтобы обновить
+        if ($objectType == 'comment') {
+            return $this->response_success(['comment_likes' => $likes, 'comment_id' => $id]);
         }
 
     }

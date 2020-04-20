@@ -12,7 +12,9 @@ var app = new Vue({
 		addSum: 0,
 		likesBalance: 0,
 		moneyBalance: 0.0,
-		likes: 0,
+		postLikes: 0,
+		commentLikes: 0,
+		commentLikedId: 0,
 		commentText: '',
 		assignCommentID: null,
 		packs: [
@@ -132,7 +134,7 @@ var app = new Vue({
             // Search parent comment.
             self.post.comments.forEach(function (comment) {
 				if (comment.id === id) {
-					if (typeof(comment.paddingL) !== 'undefined') {
+					if (typeof comment.paddingL !== 'undefined') {
                         // console.log("Parent id: "+ comment.id + " Parent tab: " + comment.paddingL + " Type: " + typeof comment.paddingL);
                         // Get parent padding
 						tabulation = Number(comment.paddingL);
@@ -181,7 +183,13 @@ var app = new Vue({
 			axios
 				.post('/main_page/like', formData)
 				.then(function (response) {
-					self.likes = response.data.likes;
+					if (typeof response.data.post_likes !== 'undefined') {
+                        self.postLikes = response.data.post_likes;
+                    }
+                    if (typeof response.data.comment_likes !== 'undefined') {
+                        self.commentLikedId = response.data.comment_id;
+                        self.commentLikes = response.data.comment_likes;
+                    }
 				})
 
 		},
