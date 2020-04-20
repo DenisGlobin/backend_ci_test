@@ -10,7 +10,8 @@ var app = new Vue({
 		errorMessage: '',
 		posts: [],
 		addSum: 0,
-		amount: 0,
+		likesBalance: 0,
+		moneyBalance: 0.0,
 		likes: 0,
 		commentText: '',
 		assignCommentID: null,
@@ -41,12 +42,18 @@ var app = new Vue({
 			.get('/main_page/get_all_posts')
 			.then(function (response) {
 				self.posts = response.data.posts;
-			})
+			});
+        axios
+            .get('/main_page/get_user_balance')
+            .then(function (response) {
+                self.likesBalance = response.data.likes_balance;
+                self.moneyBalance = response.data.wallet_balance;
+            })
 	},
 	methods: {
-		logout: function () {
-			console.log ('logout');
-		},
+		// logout: function () {
+		// 	console.log ('logout');
+		// },
 		logIn: function () {
 			let self = this;
             let formData = new FormData();
@@ -77,13 +84,15 @@ var app = new Vue({
 			}
 			else {
 				self.invalidSum = false;
-				axios.post('/main_page/add_money', {
-					sum: self.addSum,
-				})
+                let formData = new FormData();
+                formData.append("sum", self.addSum);
+
+				axios.post('/main_page/add_money', formData)
 					.then(function (response) {
 						setTimeout(function () {
 							$('#addModal').modal('hide');
 						}, 500);
+                        self.addSum = 0;
 					})
 			}
 		},
@@ -170,6 +179,19 @@ var app = new Vue({
 					self.likes = response.data.likes;
 				})
 
+		},
+		buyLikes: function () {
+			let self = this;
+			let likesAmount = $("select#amountSelectPref").val();
+
+            let formData = new FormData();
+            formData.append("likesAmount", likesAmount);
+
+            axios.post('/main_page/buy_likes', formData)
+                .then(function (response) {
+                    self.likesBalance = response.data.likes_balance;
+                    self.moneyBalance = response.data.wallet_balance;
+                });
 		},
 		buyPack: function (id) {
 			let self = this;

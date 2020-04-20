@@ -8,7 +8,9 @@
  */
 class Main_page extends MY_Controller
 {
-
+    /**
+     * Main_page constructor.
+     */
     public function __construct()
     {
         parent::__construct();
@@ -16,6 +18,7 @@ class Main_page extends MY_Controller
         App::get_ci()->load->model('User_model');
         App::get_ci()->load->model('Login_model');
         App::get_ci()->load->model('Post_model');
+        App::get_ci()->load->model('Transaction_model');
 
         App::get_ci()->load->library('form_validation');
 
@@ -24,6 +27,11 @@ class Main_page extends MY_Controller
         }
     }
 
+    /**
+     * Show main page.
+     *
+     * @throws Exception
+     */
     public function index()
     {
         $user = User_model::get_user();
@@ -31,14 +39,27 @@ class Main_page extends MY_Controller
         App::get_ci()->load->view('main_page', ['user' => User_model::preparation($user, 'default')]);
     }
 
+    /**
+     * Get all posts from DB.
+     *
+     * @return object|string|void
+     * @throws Exception
+     */
     public function get_all_posts()
     {
         $posts =  Post_model::preparation(Post_model::get_all(), 'main_page');
         return $this->response_success(['posts' => $posts]);
     }
 
+    /**
+     * Get a post by ID.
+     *
+     * @param $post_id
+     * @return object|string|void
+     * @throws Exception
+     */
     public function get_post($post_id)
-    { // or can be $this->input->post('news_id') , but better for GET REQUEST USE THIS
+    {
 
         $post_id = intval($post_id);
         if (empty($post_id)) {
@@ -63,7 +84,7 @@ class Main_page extends MY_Controller
      * @throws Exception
      */
     public function store_comment()
-    { // or can be App::get_ci()->input->post('news_id') , but better for GET REQUEST USE THIS ( tests )
+    {
 
         $post_id = App::get_ci()->input->post('postID', TRUE);
         $message = App::get_ci()->input->post('message', TRUE);
@@ -95,7 +116,7 @@ class Main_page extends MY_Controller
         );
 
         try {
-            $comment = Comment_model::create($data);
+            Comment_model::create($data);
         } catch (Exception $exception) {
             return $this->response_error($exception->getMessage());
         }
@@ -163,10 +184,103 @@ class Main_page extends MY_Controller
         redirect(base_url('/'));
     }
 
+    /**
+     * Get user's likes and money balances.
+     *
+     * @return object|string|void
+     */
+    public function get_user_balance()
+    {
+        if (!User_model::is_logged()) {
+            return $this->response_error(CI_Core::RESPONSE_GENERIC_NEED_AUTH);
+        } else {
+            $user = User_model::get_user();
+            $data = array(
+                'user_name' => $user->get_personaname(),
+                'wallet_balance' => $user->get_wallet_balance(),
+                'likes_balance' => $user->get_likes_balance()
+            );
+
+            return $this->response_success($data, 200);
+        }
+    }
+
+    /**
+     * Add money to wallet balance.
+     *
+     * @return object|string|void
+     */
     public function add_money()
     {
-        // todo: add money to user logic
-        return $this->response_success(['amount' => rand(1,55)]);
+        $money = floatval(App::get_ci()->input->post('sum', TRUE));
+        $user = User_model::get_user();
+        $balance = floatval($user->get_wallet_balance());
+        $balance += $money;
+
+        $totalWalletRefilled = floatval($user->get_wallet_total_refilled());
+        $totalWalletRefilled += $money;
+
+        $data = array(
+            'user_id' => $user->get_id(),
+            'cash_flow' => $money,
+            'likes_flow' => 0,
+            'time_created' => date('Y-m-d h:i:s')
+        );
+
+        try {
+            $user->set_wallet_balance($balance);
+            $user->set_wallet_total_refilled($totalWalletRefilled);
+            Transaction_model::create($data);
+        } catch (EmeraldModelSaveException $exception) {
+            return $this->response_error($exception->getMessage());
+        } catch (Exception $exception) {
+            return $this->response_error($exception->getMessage());
+        }
+
+        return $this->response_success(['amount' => $balance]);
+    }
+
+    /**
+     * likes purchase.
+     *
+     */
+    public function buy_likes()
+    {
+        $likesAmount = intval(App::get_ci()->input->post('likesAmount', TRUE));
+        $user = User_model::get_user();
+        $walletBalance = $user->get_wallet_balance();
+
+        if ($likesAmount > $walletBalance) {
+            return $this->response_error(CI_Core::RESPONSE_GENERIC_WRONG_PARAMS);
+        }
+
+        $walletBalance -= $likesAmount;
+
+        $totalWaletWithdrawn = floatval($user->get_wallet_total_withdrawn());
+        $totalWaletWithdrawn += $likesAmount;
+
+        $likesBalance = intval($user->get_likes_balance());
+        $likesBalance += $likesAmount;
+
+        $data = array(
+            'user_id' => $user->get_id(),
+            'cash_flow' => 0 - $likesAmount,
+            'likes_flow' => $likesAmount,
+            'time_created' => date('Y-m-d h:i:s')
+        );
+
+        try {
+            $user->set_wallet_balance($walletBalance);
+            $user->set_wallet_total_withdrawn($totalWaletWithdrawn);
+            $user->set_likes_balance($likesBalance);
+            Transaction_model::create($data);
+        } catch (EmeraldModelSaveException $exception) {
+            return $this->response_error($exception->getMessage());
+        } catch (Exception $exception) {
+            return $this->response_error($exception->getMessage());
+        }
+
+        return $this->response_success(['likes_balance' => $likesBalance, 'wallet_balance' => $walletBalance]);
     }
 
     public function buy_boosterpack()

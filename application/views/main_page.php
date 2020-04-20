@@ -36,6 +36,9 @@
               <button type="button" class="btn btn-success my-2 my-sm-0" type="submit" data-toggle="modal"
                       data-target="#addModal">Add balance
               </button>
+              <button type="button" class="btn btn-success my-2 my-sm-0" type="submit" data-toggle="modal"
+                      data-target="#amountModal">Buy likes
+              </button>
             <?php }?>
         </li>
       </div>
@@ -87,7 +90,7 @@
     </div>
   </div>
 
-  <!-- Modal -->
+  <!-- LOGIN Modal -->
   <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
        aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -122,7 +125,7 @@
       </div>
     </div>
   </div>
-  <!-- Modal -->
+  <!-- POSTS Modal -->
   <div class="modal fade bd-example-modal-xl" id="postModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
        aria-hidden="true" v-if="post">
     <div class="modal-dialog modal-xl" role="document">
@@ -182,7 +185,7 @@
       </div>
     </div>
   </div>
-  <!-- Modal -->
+  <!-- ADD BALANCE Modal -->
   <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
        aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -210,7 +213,7 @@
       </div>
     </div>
   </div>
-  <!-- Modal -->
+  <!-- BUY LIKES Modal -->
   <div class="modal fade" id="amountModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
        aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -222,10 +225,19 @@
           </button>
         </div>
         <div class="modal-body">
-          <h2 class="text-center">Likes: {{amount}}</h2>
+          <h2 class="text-center">Likes: {{likesBalance}}</h2>
+          <h2 class="text-center">Wallet balance: {{moneyBalance}}</h2>
+          <hr>
+            <div class="form-inline">
+            <label class="my-1 mr-2" for="amountSelectPref">Likes available to buy:</label>
+            <select class="custom-select my-1 mr-sm-2" id="amountSelectPref">
+                <option v-for="money in moneyBalance">{{money}}</option>
+            </select>
+            </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-success" data-dismiss="modal">Ok</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-success" @click="buyLikes">Buy</button>
         </div>
       </div>
     </div>

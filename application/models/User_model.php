@@ -6,9 +6,9 @@
  * Date: 27.01.2020
  * Time: 10:10
  */
-class User_model extends CI_Emerald_Model {
+class User_model extends CI_Emerald_Model
+{
     const CLASS_TABLE = 'user';
-
 
     /** @var string */
     protected $email;
@@ -22,6 +22,8 @@ class User_model extends CI_Emerald_Model {
     protected $avatarfull;
     /** @var int */
     protected $rights;
+    /** @var int */
+    protected $likes;
     /** @var float */
     protected $wallet_balance;
     /** @var float */
@@ -416,8 +418,6 @@ class User_model extends CI_Emerald_Model {
         $user = App::get_ci()->s->from(self::CLASS_TABLE)->where(['email' => $email])->one();
         // If user was found
         if (!is_null($user)) {
-//            self::$_current_user = (new self())->set($user);
-//            return self::$_current_user;
             return (new self())->set($user);
         } else {
             throw new EmeraldModelLoadException('User not found!');
@@ -425,9 +425,31 @@ class User_model extends CI_Emerald_Model {
         return NULL;
     }
 
-//    public static function set_current_user(User_model $user)
-//    {
-//        self::$_current_user = $user;
-//    }
+    public static function set_current_user(User_model $user)
+    {
+        self::$_current_user = $user;
+    }
+
+    /**
+     * Get user like balance.
+     *
+     * @return int
+     */
+    public function get_likes_balance(): int
+    {
+        return $this->likes;
+    }
+
+    /**
+     * Set likes amount.
+     *
+     * @param $like_balance
+     * @return bool
+     */
+    public function set_likes_balance($like_balance)
+    {
+        $this->likes = $like_balance;
+        return $this->save('likes', $like_balance);
+    }
 
 }

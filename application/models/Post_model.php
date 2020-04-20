@@ -169,7 +169,7 @@ class Post_model extends CI_Emerald_Model
         return $this->user;
     }
 
-    function __construct($id = NULL)
+    public function __construct($id = NULL)
     {
         parent::__construct();
 
