@@ -258,16 +258,33 @@ class Comment_model extends CI_Emerald_Model
             $ret[] = $o;
         }
 
-        // Отсортировать массив ret, так чтобы коментрарии, ассоциированные с другими комментариями, располагались сразу за ними
-        for ($i = 0; $i < count($ret); $i++) {
+        // Sort result array.
+        for ($i = 0; $i <= count($ret); $i++) {
+            // If this element assign with another comment
             if ($ret[$i]->assign_comment_id != NULL) {
-                $new_index = $ret[$i]->assign_comment_id;
+                // Get array index of the assigned comment
+                $new_index = 0;
+                for ($j = 0; $j <= count($ret); $j++) {
+                    if ($ret[$j]->id == $ret[$i]->assign_comment_id) {
+                        $new_index = $j;
+                    }
+                }
+
+                // If the assigned comment already contains other "nested comments"
+                while ($ret[$new_index]->assign_comment_id == $ret[$i]->assign_comment_id) {
+                    if ($new_index < count($ret)) {
+                        $new_index ++;
+                    }
+                }
+
+                // Save current value of the moving element to temp
                 $tmp = $ret[$i];
+                // Delete this element from array
                 unset($ret[$i]);
+                // Reposition of the element
                 array_splice($ret, $new_index,0, array($tmp));
             }
         }
-
         return $ret;
     }
 

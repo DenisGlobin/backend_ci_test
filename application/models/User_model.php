@@ -417,12 +417,11 @@ class User_model extends CI_Emerald_Model
         // Try to found user by email
         $user = App::get_ci()->s->from(self::CLASS_TABLE)->where(['email' => $email])->one();
         // If user was found
-        if (!is_null($user)) {
+        if (!empty($user)) {
             return (new self())->set($user);
         } else {
             throw new EmeraldModelLoadException('User not found!');
         }
-        return NULL;
     }
 
     public static function set_current_user(User_model $user)

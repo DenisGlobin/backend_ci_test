@@ -240,8 +240,7 @@ class CI_Emerald_Model {
             $this->map_sql_to_class();
         } else
         {
-//            throw new EmeraldModelNoDataException('wrong data');
-            return NULL;
+            throw new EmeraldModelNoDataException('wrong data');
         }
 
         return $this;
