@@ -50,7 +50,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |		my-controller/my-method	-> my_controller/my_method
 */
 
-
+$route['post/:num'] = 'main_page/get_post/$1';
 $route['login']['post'] = 'main_page/login';
 $route['comment']['post'] = 'main_page/store_comment';
 $route['money']['post'] = 'main_page/add_money';

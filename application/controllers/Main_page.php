@@ -15,6 +15,7 @@ class Main_page extends MY_Controller
     {
         parent::__construct();
 
+        $this->load->database();
         App::get_ci()->load->model('User_model');
         App::get_ci()->load->model('Login_model');
         App::get_ci()->load->model('Post_model');
@@ -22,7 +23,8 @@ class Main_page extends MY_Controller
 
         App::get_ci()->load->library('form_validation');
 
-        if (is_prod()) {
+        if (is_prod())
+        {
             die('In production it will be hard to debug! Run as development environment!');
         }
     }
@@ -37,6 +39,22 @@ class Main_page extends MY_Controller
         $user = User_model::get_user();
 
         App::get_ci()->load->view('main_page', ['user' => User_model::preparation($user, 'default')]);
+    }
+
+    public function get_auth_user()
+    {
+        if ( ! User_model::is_logged())
+        {
+            return $this->response_info(['auth' => FALSE]);
+        }
+
+        $user = User_model::get_user();
+        $data = array(
+            'auth' => TRUE,
+            'user_name' => $user->get_personaname(),
+        );
+
+        return $this->response_success($data, 200);
     }
 
     /**
@@ -62,16 +80,19 @@ class Main_page extends MY_Controller
     {
 
         $post_id = intval($post_id);
-        if (empty($post_id)) {
+        if (empty($post_id))
+        {
             return $this->response_error(CI_Core::RESPONSE_GENERIC_WRONG_PARAMS);
         }
 
-        try {
+        try
+        {
             $post = new Post_model($post_id);
-        } catch (EmeraldModelNoDataException $ex) {
+        }
+        catch(EmeraldModelNoDataException $ex)
+        {
             return $this->response_error(CI_Core::RESPONSE_GENERIC_NO_DATA);
         }
-
 
         $posts =  Post_model::preparation($post, 'full_info');
         return $this->response_success(['post' => $posts]);
@@ -86,23 +107,28 @@ class Main_page extends MY_Controller
     public function store_comment()
     {
 
-        $post_id = App::get_ci()->input->post('postID', TRUE);
+        $post_id = App::get_ci()->input->post('post_id', TRUE);
         $message = App::get_ci()->input->post('message', TRUE);
-        $assignComment = App::get_ci()->input->post('assignComment', TRUE);
-        $assignComment = ($assignComment == "null") ? NULL : $assignComment;
+        $assign_comment = App::get_ci()->input->post('assign_comment', TRUE);
+        $assign_comment = ($assign_comment == "null") ? NULL : $assign_comment;
 
-        if (!User_model::is_logged()) {
+        if ( ! User_model::is_logged())
+        {
             return $this->response_error(CI_Core::RESPONSE_GENERIC_NEED_AUTH);
         }
 
         $post_id = intval($post_id);
-        if (empty($post_id) || empty($message)) {
+        if (empty($post_id) OR empty($message))
+        {
             return $this->response_error(CI_Core::RESPONSE_GENERIC_WRONG_PARAMS);
         }
 
-        try {
+        try
+        {
             $post = new Post_model($post_id);
-        } catch (EmeraldModelNoDataException $ex) {
+        }
+        catch(EmeraldModelNoDataException $ex)
+        {
             return $this->response_error(CI_Core::RESPONSE_GENERIC_NO_DATA);
         }
 
@@ -110,14 +136,17 @@ class Main_page extends MY_Controller
         $data = array(
             'user_id' => $user->get_id(),
             'assign_id' => $post_id,
-            'assign_comment_id' => $assignComment,
+            'assign_comment_id' => $assign_comment,
             'text' => $message,
             'time_created' => date('Y-m-d h:i:s')
         );
 
-        try {
+        try
+        {
             Comment_model::create($data);
-        } catch (Exception $exception) {
+        }
+        catch(Exception $exception)
+        {
             return $this->response_error($exception->getMessage());
         }
 
@@ -149,25 +178,37 @@ class Main_page extends MY_Controller
         );
         App::get_ci()->form_validation->set_rules($rules);
 
-        if (App::get_ci()->form_validation->run() == TRUE) {
-            try {
+        if (App::get_ci()->form_validation->run() === TRUE)
+        {
+
+            try
+            {
                 // If the validation was successful, we try to find the user in the database.
                 $user = User_model::find_user($email);
-            } catch (EmeraldModelLoadException $exception) {
+            }
+            catch(EmeraldModelLoadException $exception)
+            {
                 return $this->response_error($exception->getMessage());
             }
             // Checking password
             if (isset($user) && ($user->get_password() === $password)) {
-                try {
+                try
+                {
                     Login_model::start_session($user->get_id());
-                } catch (Exception $exception) {
+                }
+                catch(Exception $exception)
+                {
                     return $this->response_error($exception->getMessage());
                 }
-            } else {
+            }
+            else
+            {
                 return $this->response_error('These credentials do not match our records');
             }
 
-        } else {
+        }
+        else
+        {
             return $this->response_error(validation_errors());
         }
         // If the data entered is correct.
@@ -191,9 +232,12 @@ class Main_page extends MY_Controller
      */
     public function get_user_balance()
     {
-        if (!User_model::is_logged()) {
+        if ( ! User_model::is_logged())
+        {
             return $this->response_error(CI_Core::RESPONSE_GENERIC_NEED_AUTH);
-        } else {
+        }
+        else
+        {
             $user = User_model::get_user();
             $data = array(
                 'user_name' => $user->get_personaname(),
@@ -217,8 +261,8 @@ class Main_page extends MY_Controller
         $balance = floatval($user->get_wallet_balance());
         $balance += $money;
 
-        $totalWalletRefilled = floatval($user->get_wallet_total_refilled());
-        $totalWalletRefilled += $money;
+        $total_wallet_refilled = floatval($user->get_wallet_total_refilled());
+        $total_wallet_refilled += $money;
 
         $data = array(
             'user_id' => $user->get_id(),
@@ -227,14 +271,20 @@ class Main_page extends MY_Controller
             'time_created' => date('Y-m-d h:i:s')
         );
 
-        try {
-            $user->set_wallet_balance($balance);
-            $user->set_wallet_total_refilled($totalWalletRefilled);
-            Transaction_model::create($data);
-        } catch (EmeraldModelSaveException $exception) {
-            return $this->response_error($exception->getMessage());
-        } catch (Exception $exception) {
-            return $this->response_error($exception->getMessage());
+        $this->db->trans_begin();
+
+        $user->set_wallet_balance($balance);
+        $user->set_wallet_total_refilled($total_wallet_refilled);
+        Transaction_model::create($data);
+
+        if ( $this->db->trans_status() === FALSE)
+        {
+            $this->db->trans_rollback();
+            return $this->response_error(CI_Core::DB_STATE_ERROR);
+        }
+        else
+        {
+            $this->db->trans_commit();
         }
 
         return $this->response_success(['amount' => $balance]);
@@ -247,41 +297,48 @@ class Main_page extends MY_Controller
      */
     public function buy_likes()
     {
-        $likesAmount = intval(App::get_ci()->input->post('likesAmount', TRUE));
+        $likes_amount = intval(App::get_ci()->input->post('likes_amount', TRUE));
         $user = User_model::get_user();
-        $walletBalance = $user->get_wallet_balance();
+        $wallet_balance = $user->get_wallet_balance();
 
-        if ($likesAmount > $walletBalance) {
+        if ($likes_amount > $wallet_balance)
+        {
             return $this->response_error(CI_Core::RESPONSE_GENERIC_WRONG_PARAMS);
         }
 
-        $walletBalance -= $likesAmount;
+        $wallet_balance -= $likes_amount;
 
-        $totalWaletWithdrawn = floatval($user->get_wallet_total_withdrawn());
-        $totalWaletWithdrawn += $likesAmount;
+        $total_walet_withdrawn = floatval($user->get_wallet_total_withdrawn());
+        $total_walet_withdrawn += $likes_amount;
 
-        $likesBalance = intval($user->get_likes_balance());
-        $likesBalance += $likesAmount;
+        $likes_balance = intval($user->get_likes_balance());
+        $likes_balance += $likes_amount;
 
         $data = array(
             'user_id' => $user->get_id(),
-            'cash_flow' => 0 - $likesAmount,
-            'likes_flow' => $likesAmount,
+            'cash_flow' => 0 - $likes_amount,
+            'likes_flow' => $likes_amount,
             'time_created' => date('Y-m-d h:i:s')
         );
 
-        try {
-            $user->set_wallet_balance($walletBalance);
-            $user->set_wallet_total_withdrawn($totalWaletWithdrawn);
-            $user->set_likes_balance($likesBalance);
-            Transaction_model::create($data);
-        } catch (EmeraldModelSaveException $exception) {
-            return $this->response_error($exception->getMessage());
-        } catch (Exception $exception) {
-            return $this->response_error($exception->getMessage());
+        $this->db->trans_begin();
+
+        $user->set_wallet_balance($wallet_balance);
+        $user->set_wallet_total_withdrawn($total_walet_withdrawn);
+        $user->set_likes_balance($likes_balance);
+        Transaction_model::create($data);
+
+        if ( $this->db->trans_status() === FALSE)
+        {
+            $this->db->trans_rollback();
+            return $this->response_error(CI_Core::DB_STATE_ERROR);
+        }
+        else
+        {
+            $this->db->trans_commit();
         }
 
-        return $this->response_success(['likes_balance' => $likesBalance, 'wallet_balance' => $walletBalance]);
+        return $this->response_success(['likes_balance' => $likes_balance, 'wallet_balance' => $wallet_balance]);
     }
 
     public function buy_boosterpack()
@@ -297,27 +354,35 @@ class Main_page extends MY_Controller
      */
     public function like()
     {
-        if (!User_model::is_logged()) {
+        if ( ! User_model::is_logged())
+        {
             return $this->response_error(CI_Core::RESPONSE_GENERIC_NEED_AUTH);
         }
         $user = User_model::get_user();
 
         $id = intval(App::get_ci()->input->post('id', TRUE));
-        $objectType = App::get_ci()->input->post('objType', TRUE);
+        $object_type = App::get_ci()->input->post('obj_type', TRUE);
 
-        switch ($objectType) {
+        switch ($object_type)
+        {
             case 'post':
-                try {
-                    $objectModel = new Post_model($id);
-                } catch (EmeraldModelNoDataException $ex) {
+                try
+                {
+                    $object_model = new Post_model($id);
+                }
+                catch(EmeraldModelNoDataException $ex)
+                {
                     return $this->response_error(CI_Core::RESPONSE_GENERIC_NO_DATA);
                 }
                 break;
             case 'comment':
                 App::get_ci()->load->model('Comment_model');
-                try {
-                    $objectModel = new Comment_model($id);
-                } catch (EmeraldModelNoDataException $ex) {
+                try
+                {
+                    $object_model = new Comment_model($id);
+                }
+                catch(EmeraldModelNoDataException $ex)
+                {
                     return $this->response_error(CI_Core::RESPONSE_GENERIC_NO_DATA);
                 }
                 break;
@@ -325,24 +390,49 @@ class Main_page extends MY_Controller
                 return $this->response_error(CI_Core::RESPONSE_GENERIC_WRONG_PARAMS);
         }
 
-        $likes = $objectModel->get_likes();
-        $likesBalance = intval($user->get_likes_balance());
+        $likes = $object_model->get_likes();
+        $likes_balance = intval($user->get_likes_balance());
         // Check if the user has likes on the account
-        if ($likesBalance > 0) {
+        if ($likes_balance > 0)
+        {
             $likes++;
-            $likesBalance--;
+            $likes_balance--;
 
-            $user->set_likes_balance($likesBalance);
-            $objectModel->set_likes($likes);
-        } else {
+            $data = array(
+                'user_id' => $user->get_id(),
+                'cash_flow' => 0,
+                'likes_flow' => -1,
+                'time_created' => date('Y-m-d h:i:s')
+            );
+
+            $this->db->trans_begin();
+
+            $user->set_likes_balance($likes_balance);
+            $object_model->set_likes($likes);
+            Transaction_model::create($data);
+
+            if ( $this->db->trans_status() === FALSE)
+            {
+                $this->db->trans_rollback();
+                return $this->response_error(CI_Core::DB_STATE_ERROR);
+            }
+            else
+            {
+                $this->db->trans_commit();
+            }
+        }
+        else
+        {
             return $this->response_error('Error! No likes on your account.');
         }
 
-        if ($objectType == 'post') {
+        if ($object_type === 'post')
+        {
             return $this->response_success(['post_likes' => $likes]);
         }
 
-        if ($objectType == 'comment') {
+        if ($object_type === 'comment')
+        {
             return $this->response_success(['comment_likes' => $likes, 'comment_id' => $id]);
         }
 

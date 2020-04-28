@@ -51,9 +51,9 @@ class Comment_model extends CI_Emerald_Model
     }
 
     /**
-     * @return int
+     * @return int|null
      */
-    public function get_assing_id(): int
+    public function get_assing_id()
     {
         return $this->assing_id;
     }
@@ -244,11 +244,12 @@ class Comment_model extends CI_Emerald_Model
     {
         $ret = [];
 
-        foreach ($data as $d) {
+        foreach ($data as $d)
+        {
             $o = new stdClass();
 
             $o->id = intval($d->get_id());
-            $o->assign_comment_id = ($d->get_assign_comment_id($o->id) != NULL) ? intval($d->get_assign_comment_id($o->id)) : NULL;
+            $o->assign_comment_id = ($d->get_assign_comment_id($o->id) !== NULL) ? intval($d->get_assign_comment_id($o->id)) : NULL;
             $o->text = $d->get_text();
             $o->user = User_model::preparation($d->get_user(),'main_page');
             $o->likes = $d->get_likes();
@@ -259,33 +260,36 @@ class Comment_model extends CI_Emerald_Model
         }
 
         // Sort result array.
-        for ($i = 0; $i <= count($ret); $i++) {
+        for ($i = 0; $i <= count($ret); $i++)
+        {
             // If this element assign with another comment
-            if ($ret[$i]->assign_comment_id != NULL) {
-                // Get array index of the assigned comment
-                $new_index = 0;
-                for ($j = 0; $j <= count($ret); $j++) {
-                    if ($ret[$j]->id == $ret[$i]->assign_comment_id) {
-                        $new_index = $j;
-                    }
-                }
+            if ($ret[$i]->assign_comment_id !== NULL)
+            {
+                self::add_to_node($ret, $ret[$i]->assign_comment_id, $ret[$i]);
 
-                // If the assigned comment already contains other "nested comments"
-                while ($ret[$new_index]->assign_comment_id == $ret[$i]->assign_comment_id) {
-                    if ($new_index < count($ret)) {
-                        $new_index ++;
-                    }
-                }
-
-                // Save current value of the moving element to temp
-                $tmp = $ret[$i];
-                // Delete this element from array
-                unset($ret[$i]);
-                // Reposition of the element
-                array_splice($ret, $new_index,0, array($tmp));
+                // Delete this element from his old array position
+                array_splice($ret, $i, 1);
+                $i--;
             }
         }
+
         return $ret;
+    }
+
+    private static function add_to_node(array $node, int $search_id, $child)
+    {
+        foreach ($node as $key => $value)
+        {
+            if ($node[$key]->id === $search_id)
+            {
+                $node[$key]->child_node[] = $child;
+                return;
+            }
+            elseif (isset($node[$key]->child_node))
+            {
+                self::add_to_node($node[$key]->child_node, $search_id, $child);
+            }
+        }
     }
 
     /**

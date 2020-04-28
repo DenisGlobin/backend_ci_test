@@ -350,7 +350,9 @@ class User_model extends CI_Emerald_Model
         if (!$data->is_loaded())
         {
             $o->id = NULL;
-        } else {
+        }
+        else
+        {
             $o->id = $data->get_id();
 
             $o->personaname = $data->get_personaname();
@@ -394,13 +396,17 @@ class User_model extends CI_Emerald_Model
      */
     public static function get_user()
     {
-        if (!is_null(self::$_current_user)) {
+        if ( ! is_null(self::$_current_user))
+        {
             return self::$_current_user;
         }
-        if (!is_null(self::get_session_id())) {
+        if ( ! is_null(self::get_session_id()))
+        {
             self::$_current_user = new self(self::get_session_id());
             return self::$_current_user;
-        } else {
+        }
+        else
+        {
             return new self();
         }
     }
@@ -417,9 +423,12 @@ class User_model extends CI_Emerald_Model
         // Try to found user by email
         $user = App::get_ci()->s->from(self::CLASS_TABLE)->where(['email' => $email])->one();
         // If user was found
-        if (!empty($user)) {
+        if ( ! empty($user))
+        {
             return (new self())->set($user);
-        } else {
+        }
+        else
+        {
             throw new EmeraldModelLoadException('User not found!');
         }
     }
